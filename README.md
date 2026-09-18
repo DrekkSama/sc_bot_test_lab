@@ -125,6 +125,29 @@ docker compose -f test_lab/quickstart/docker-compose.yml down -v
 
 </details>
 
+#### Reverse-proxy / remote access (waitress + CSRF env vars)
+
+Django's built-in dev server cannot parse chunked transfer-encoding, which
+many reverse proxies (e.g. `tailscale serve`) use for POST requests — form
+submissions behind such a proxy will fail with `403 (CSRF token missing)`.
+For remote access, run a real WSGI server instead and opt in to forwarded
+headers:
+
+```bash
+pip install waitress
+
+# Example: expose at https://your-host.ts.net:8443/test_lab/ via `tailscale serve`
+TEST_LAB_CSRF_TRUSTED_ORIGINS="https://your-host.ts.net:8443" \
+TEST_LAB_USE_FORWARDED=1 \
+python -m waitress --listen=0.0.0.0:8000 test_lab.quickstart.wsgi:application
+```
+
+- `TEST_LAB_CSRF_TRUSTED_ORIGINS` — comma-separated list of proxy origins
+  trusted for CSRF (scheme + host + port must match exactly).
+- `TEST_LAB_USE_FORWARDED=1` — honor `X-Forwarded-Host` / `X-Forwarded-Proto`.
+
+Both default to unset, so local `runserver` setups are unaffected.
+
 ### 6. Basic Configuration
 
 In the app, go to `Config > System` and enter the path for the directory containing the maps.
