@@ -1,0 +1,6 @@
+# PiG_Bot match image: arenaclient-bot + PiGBot's compiled-engine dependency.
+# cython_extensions is required by ares-sc2 at import time (cy_towards etc.).
+# Base image is Python 3.12 — pin the matching wheel version (ares-sc2 pins ^0.17.0).
+FROM aiarena/arenaclient-bot:v0.8.0
+
+RUN pip install --no-cache-dir cython-extensions-sc2==0.17.0

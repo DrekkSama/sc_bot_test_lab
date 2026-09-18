@@ -107,3 +107,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Remote UI via tailscale serve (8443 tailnet-only proxy to this Django dev server)
+CSRF_TRUSTED_ORIGINS = ['https://acmeserver.tail5619c5.ts.net:8443']
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
