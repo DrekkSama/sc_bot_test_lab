@@ -107,3 +107,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Reverse-proxy support (e.g. tailscale serve, nginx). Set env vars before
+# starting runserver:
+#   TEST_LAB_CSRF_TRUSTED_ORIGINS="https://your-proxy-host:8443"  (comma-separated)
+#   TEST_LAB_USE_FORWARDED=1   -> honor X-Forwarded-Host / X-Forwarded-Proto
+CSRF_TRUSTED_ORIGINS = [
+    o for o in os.environ.get('TEST_LAB_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if o.strip()
+]
+USE_X_FORWARDED_HOST = bool(os.environ.get('TEST_LAB_USE_FORWARDED', ''))
+SECURE_PROXY_SSL_HEADER = (
+    ('HTTP_X_FORWARDED_PROTO', 'https') if USE_X_FORWARDED_HOST else None
+)

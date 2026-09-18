@@ -1092,7 +1092,9 @@ def start_aiarena_match(
             )
 
     match_id = match.id
-    dockerfiles = (test_bot.dockerfile, opponent_bot.dockerfile if not is_mirror else '')
+    # Mirror matches: opponent is the same bot — it needs the same custom
+    # Dockerfile (pre-installed deps) as the test subject, not the stock image.
+    dockerfiles = (test_bot.dockerfile, opponent_bot.dockerfile if not is_mirror else test_bot.dockerfile)
     run_dir = _create_run_dir(match_id, dockerfiles=dockerfiles)
 
     _write_matches_file(
@@ -1113,7 +1115,7 @@ def start_aiarena_match(
         bot2_name=opponent_dir_name,
         bot2_host_path=opponent_path,
         bot2_type=opponent_type,
-        bot2_dockerfile=opponent_bot.dockerfile if not is_mirror else '',
+        bot2_dockerfile=opponent_bot.dockerfile if not is_mirror else test_bot.dockerfile,
         opponent_bot=opponent_bot if not is_mirror else None,
         is_mirror=is_mirror,
         mirror_aiarena_name=mirror_name,
