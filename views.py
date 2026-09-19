@@ -1263,27 +1263,40 @@ def api_trigger_tests(request):
 
 
 def serve_replay(request, match_id):
-    """Open replay files with StarCraft 2 locally."""
-    config = SystemConfig.load()
-    sc2_switcher = config.sc2_switcher_path
+    """Serve replay files as downloads.
+
+    Previously tried to launch SC2Switcher locally via subprocess; that only
+    works when the UI runs on the same machine as a StarCraft 2 install. The
+    lab is typically deployed headless behind a reverse proxy, so serve the
+    replay file itself and let the client open it in their own viewer.
+    """
+    from django.http import FileResponse
 
     # Check aiarena run directory first
     replay_path = aiarena_runner.get_replay_path(match_id)
     if replay_path:
-        subprocess.Popen([sc2_switcher, replay_path])
-        return HttpResponse(status=204)
+        return FileResponse(
+            open(replay_path, 'rb'),
+            content_type='application/octet-stream',
+            as_attachment=True,
+            filename=os.path.basename(replay_path),
+        )
 
     # Fall back to single-container directory
     replay_dir = _get_logs_dir()
     replay_pattern = os.path.join(replay_dir, f"{match_id}_*.SC2Replay")
     replay_files = glob.glob(replay_pattern)
-    
+
     if not replay_files:
         raise Http404("Replay file not found")
-    
+
     file_path = replay_files[0]
-    subprocess.Popen([sc2_switcher, file_path])
-    return HttpResponse(status=204)
+    return FileResponse(
+        open(file_path, 'rb'),
+        content_type='application/octet-stream',
+        as_attachment=True,
+        filename=os.path.basename(file_path),
+    )
 
 def serve_log(request, match_id):
     """Serve the main log file for a match.
